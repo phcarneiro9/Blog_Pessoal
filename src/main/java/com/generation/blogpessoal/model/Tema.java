@@ -16,23 +16,31 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-@Entity // vai gerar uma model
-@Table(name = "tb_temas") // é Equivalente no SQL a CREATE TABLE tb_temas();
-
+@Entity
+@Table(name = "tb_temas") // CREATE TABLE tb_temas();
 public class Tema {
 
-	@Id // Equivalente a PRIMARY KEY
-	@GeneratedValue(strategy = GenerationType.IDENTITY) // Equivalente a AUTO_INCREMENT
+	@Id // PRYMARY KEY 
+	@GeneratedValue(strategy = GenerationType.IDENTITY) // AUTO_INCREMENT
 	private Long id;
-
-	@NotBlank(message = "O atributo descrição é obrigatório!")
-	@Size(min = 5, max = 255, message = "O atributo descrição deve conter no mínimo 5 e no máximo 255 caracteres!")
-	@Column(length = 255) // Configurações de coluna dentro do banco de dados
+	
+	@NotBlank(message = "O atributo descricão é obrigatório!")
+	@Size(max = 255, message = "A descricão deve ter no máximo 255 caracteres!")
+	@Column(length = 255)
 	private String descricao;
-
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "tema", cascade = CascadeType.REMOVE) // Remove a mais utilizada
+	
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "tema", cascade = CascadeType.REMOVE)
 	@JsonIgnoreProperties(value = "tema", allowSetters = true)
 	private List<Postagem> postagem;
+	
+
+	public List<Postagem> getPostagem() {
+		return postagem;
+	}
+
+	public void setPostagem(List<Postagem> postagem) {
+		this.postagem = postagem;
+	}
 
 	public Long getId() {
 		return id;
@@ -49,13 +57,6 @@ public class Tema {
 	public void setDescricao(String descricao) {
 		this.descricao = descricao;
 	}
-
-	public List<Postagem> getPostagem() {
-		return postagem;
-	}
-
-	public void setPostagem(List<Postagem> postagem) {
-		this.postagem = postagem;
-	}
-
+	
+	
 }

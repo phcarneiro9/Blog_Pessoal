@@ -21,102 +21,98 @@ public class UsuarioService {
 
 	@Autowired
 	private UsuarioRepository usuarioRepository;
-
+	
 	@Autowired
 	private JwtService jwtService;
-
+	
 	@Autowired
 	private AuthenticationManager authenticationManager;
-
+	
 	@Autowired
 	private PasswordEncoder passwordEncoder;
-
+	
 	public List<Usuario> getAll() {
 		return usuarioRepository.findAll();
 	}
-
+	
 	public Optional<Usuario> getById(Long id) {
 		return usuarioRepository.findById(id);
 	}
-
+	
 	public Optional<Usuario> cadastrarUsuario(Usuario usuario) {
-
-		if (usuarioRepository.findByUsuario(usuario.getUsuario()).isPresent()) {
+		
+		if(usuarioRepository.findByUsuario(usuario.getUsuario()).isPresent()) {
 			return Optional.empty();
 		}
-
+		
 		usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
 		usuario.setId(null);
-
+		
 		return Optional.of(usuarioRepository.save(usuario));
 	}
-
+	
 	public Optional<Usuario> atualizarUsuario(Usuario usuario) {
-
-		if (!usuarioRepository.findById(usuario.getId()).isPresent()) {
+		
+		if(usuarioRepository.findById(usuario.getId()).isEmpty()) {
 			return Optional.empty();
 		}
-
-		Optional<Usuario> usuarioExistente =
-				usuarioRepository.findByUsuario(usuario.getUsuario());
-
-		if (usuarioExistente.isPresent()
-				&& !usuarioExistente.get().getId().equals(usuario.getId())) {
-
-			throw new ResponseStatusException(
-				HttpStatus.BAD_REQUEST,
-				"Usuário já existe!",
-				null
-			);
-		}
-
+		
+		Optional<Usuario> usuarioExistente = usuarioRepository.findByUsuario(usuario.getUsuario());
+		
+		if(usuarioExistente.isPresent() && !usuarioExistente.get().getId().equals(usuario.getId()))
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O e-mail já está em uso!", null);
+		
+		
 		usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
-
-		return Optional.of(usuarioRepository.save(usuario));
+		usuario.setId(null);
+		
+		return Optional.ofNullable(usuarioRepository.save(usuario));
 	}
-
-	public Optional<UsuarioLogin> autenticarUsuario(
-			Optional<UsuarioLogin> usuarioLogin) {
-
-		if (!usuarioLogin.isPresent()) {
+	
+	public Optional<UsuarioLogin> autenticarUsuario(Optional<UsuarioLogin> usuarioLogin) {
+		
+		if(usuarioLogin.isEmpty()) {
 			return Optional.empty();
 		}
-
+		
 		UsuarioLogin login = usuarioLogin.get();
-
+		
 		try {
-
+			
 			authenticationManager.authenticate(
-				new UsernamePasswordAuthenticationToken(
-					login.getUsuario(),
-					login.getSenha()
-				)
-			);
-
-			return usuarioRepository
-				.findByUsuario(login.getUsuario())
-				.map(usuario -> construirRespostaLogin(login, usuario));
-
-		} catch (Exception e) {
-
+					new UsernamePasswordAuthenticationToken(login.getUsuario(), login.getSenha()));
+			
+			return usuarioRepository.findByUsuario(login.getUsuario())
+					.map(usuario -> construirRespostaLogin(login, usuario));
+		}catch(Exception e) {
 			return Optional.empty();
 		}
+		
 	}
-
-	private UsuarioLogin construirRespostaLogin(
-			UsuarioLogin usuarioLogin,
-			Usuario usuario) {
-
+	
+	private UsuarioLogin construirRespostaLogin(UsuarioLogin usuarioLogin, Usuario usuario) {
 		usuarioLogin.setId(usuario.getId());
 		usuarioLogin.setNome(usuario.getNome());
 		usuarioLogin.setFoto(usuario.getFoto());
 		usuarioLogin.setSenha("");
 		usuarioLogin.setToken(gerarToken(usuario.getUsuario()));
-
+		
 		return usuarioLogin;
+		
 	}
-
+	
 	private String gerarToken(String usuario) {
 		return "Bearer " + jwtService.generateToken(usuario);
 	}
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }

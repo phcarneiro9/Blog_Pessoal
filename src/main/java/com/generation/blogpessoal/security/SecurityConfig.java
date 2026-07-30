@@ -24,11 +24,7 @@ public class SecurityConfig {
         "/usuarios/logar",
         "/usuarios/cadastrar",
         "/error/**",
-        "/",
-        "/docs",
-        "/swagger-ui/**",
-        "/v3/api-docs/**",
-        "/swagger-resources/**"
+        "/", "/docs", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**"
     };
 
     @Autowired
@@ -40,47 +36,31 @@ public class SecurityConfig {
     }
 
     @Bean
-    AuthenticationManager authenticationManager(
-            AuthenticationConfiguration config) throws Exception {
-
+    AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
         return http
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(
-                    SessionCreationPolicy.STATELESS
-                )
-            )
-
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .csrf(csrf -> csrf.disable())
-
             .cors(cors -> {})
-
+            
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                 .requestMatchers(HttpMethod.OPTIONS).permitAll()
                 .anyRequest().authenticated()
             )
-
+            
             .exceptionHandling(exceptions -> exceptions
-                .authenticationEntryPoint(
-                    (request, response, authException) ->
-                        response.sendError(
-                            HttpServletResponse.SC_UNAUTHORIZED,
-                            "Não autorizado - Token JWT ausente ou inválido"
-                        )
-                )
+                    .authenticationEntryPoint((request, response, authException) -> 
+                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, 
+                            "Não autorizado - Token JWT ausente ou inválido"))
             )
-
-            .addFilterBefore(
-                jwtAuthFilter,
-                UsernamePasswordAuthenticationFilter.class
-            )
-
+            
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .build();
     }
+    
 }

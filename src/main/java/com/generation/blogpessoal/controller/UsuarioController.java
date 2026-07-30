@@ -25,6 +25,58 @@ import jakarta.validation.Valid;
 @RequestMapping("/usuarios")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class UsuarioController {
+	
+	@Autowired
+	private UsuarioService usuarioService;
+	
+	@GetMapping("/all")
+	public ResponseEntity<List<Usuario>> getAll(){
+		return ResponseEntity.ok(usuarioService.getAll());
+		
+		// SELECT * FROM tb_usuarios;
+		
+	}
+	
+	@GetMapping("/{id}")
+	public ResponseEntity<Usuario> getById(@PathVariable Long id){
+		return usuarioService.getById(id)
+				.map(resposta -> ResponseEntity.ok(resposta))
+				.orElse(ResponseEntity.notFound().build());
+		
+		// SELECT * FROM tb_usuarios WHERE id = ?;
+		
+	}
+	
+	@PostMapping("/cadastrar")
+	public ResponseEntity<Usuario> post(@Valid @RequestBody Usuario usuario){
+		return usuarioService.cadastrarUsuario(usuario)
+				.map(resposta -> ResponseEntity.status(HttpStatus.CREATED).body(resposta))
+				.orElse(ResponseEntity.badRequest().build());
+		
+		// INSERT INTO tb_usuarios(email, senha) VALUES(?, ?);
+		
+	}
+	
+	@PutMapping("/atualizar")
+	public ResponseEntity<Usuario> put(@Valid @RequestBody Usuario usuario){
+		return usuarioService.atualizarUsuario(usuario)
+				.map(resposta -> ResponseEntity.status(HttpStatus.OK).body(resposta))
+				.orElse(ResponseEntity.notFound().build());
+		
+		// UPDATE tb_usuarios SET email = ? WHERE id = ?;
+		
+	}
+	
+	@PostMapping("/logar")
+	public ResponseEntity<UsuarioLogin> autenticar(@Valid @RequestBody Optional<UsuarioLogin> usuarioLogin){
+		return usuarioService.autenticarUsuario(usuarioLogin)
+				.map(resposta -> ResponseEntity.status(HttpStatus.OK).body(resposta))
+				.orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+	}
+	
+	
+	
+	
 
 	@Autowired
 	private UsuarioService usuarioService;

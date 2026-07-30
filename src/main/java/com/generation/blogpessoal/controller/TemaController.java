@@ -23,89 +23,103 @@ import com.generation.blogpessoal.repository.TemaRepository;
 
 import jakarta.validation.Valid;
 
+
 @RestController
 @RequestMapping("/temas")
-@CrossOrigin(origins = "*", allowedHeaders = "*") 
-// Libera requisições de qualquer origem.
-// Isso é útil quando o front-end estiver rodando em outro domínio ou na nuvem.
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class TemaController {
+	
+	@Autowired
+	private TemaRepository temaRepository;
+	
+	
+	@GetMapping
+	public ResponseEntity<List<Tema>> getAll(){
+		return ResponseEntity.ok(temaRepository.findAll());
+		
+		// SELECT * FROM tb_temas;
+		
+	}
+	
+	@GetMapping("/{id}")
+	public ResponseEntity<Tema> getById(@PathVariable Long id) {
+		return temaRepository.findById(id)
+				.map(resposta -> ResponseEntity.ok(resposta))
+				.orElse(ResponseEntity.notFound().build());
+		
+		// SELECT * FROM tb_temas WHERE id = ?;
+		
+	}
+	
+	@GetMapping("/descricao/{descricao}")
+	public ResponseEntity<List<Tema>> getAllByTitulo(@PathVariable String descricao){
+		return ResponseEntity.ok(temaRepository.findAllByDescricaoContainingIgnoreCase(descricao));
+		
+		// SELECT * FROM tb_temas WHERE descricao LIKE "%?%";
+	
+	}
+	
+	@PostMapping
+	public ResponseEntity<Tema> post(@Valid @RequestBody Tema tema) {
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(temaRepository.save(tema));
+		
+		// INSERT INTO tb_temas(Tema, tema) VALUES(?, ?);
+		
+	}
+	
+	@PutMapping
+	public ResponseEntity<Tema> put(@Valid @RequestBody Tema tema) {
+		
+		if(temaRepository.existsById(tema.getId()))
+			return ResponseEntity.ok(temaRepository.save(tema));
+		
+		// UPDATE tb_temas SET descricao = ? WHERE id = ?;
+		
+		return ResponseEntity.notFound().build();
+		
+	}
+	
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	@DeleteMapping("/{id}")
+	public void delete(@PathVariable Long id) {
+		
+		Optional<Tema> tema = temaRepository.findById(id);
+		
+		if(tema.isEmpty())
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+		
+		temaRepository.deleteById(id);
+		
+		// DELETE FROM tb_temas WHERE id = ?;
+		
+	}
 
-    // Injeta o repositório responsável pelas operações da entidade Tema
-    @Autowired
-    private TemaRepository temaRepository;
 
-    @GetMapping
-    public ResponseEntity<List<Tema>> getAll() {
-
-        // Retorna a lista com todos os temas cadastrados
-        // Equivalente SQL: SELECT * FROM tb_temas;
-        return ResponseEntity.ok(temaRepository.findAll());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Tema> getById(@PathVariable Long id) {
-
-        // Busca um tema pelo id informado na URL
-        // @PathVariable indica que o valor vem do caminho da requisição
-        return temaRepository.findById(id)
-
-                // Se encontrar o tema, retorna 200 OK com o objeto no corpo
-                .map(resposta -> ResponseEntity.ok(resposta))
-
-                // Se não encontrar, retorna 404 Not Found
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-    }
-
-    @GetMapping("/descricao/{descricao}")
-    public ResponseEntity<List<Tema>> getAllByDescricao(@PathVariable String descricao) {
-
-        // Busca todos os temas cuja descrição contenha o texto informado
-        // Ignora diferença entre letras maiúsculas e minúsculas
-        return ResponseEntity.ok(temaRepository.findAllByDescricaoContainingIgnoreCase(descricao));
-    }
-
-    @PostMapping
-    public ResponseEntity<Tema> post(@Valid @RequestBody Tema tema){
-
-        // @RequestBody indica que os dados virão no corpo da requisição em JSON
-        // @Valid ativa as validações definidas na entidade Tema
-
-        // Garante que o id será gerado automaticamente pelo banco
-        // Isso evita que o cadastro tente reutilizar um id já existente
-        tema.setId(null);
-
-        // Salva o novo tema e retorna 201 CREATED
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(temaRepository.save(tema));
-    }
-
-    @PutMapping
-    public ResponseEntity<Tema> put(@Valid @RequestBody Tema tema){
-
-        // Busca o tema pelo id antes de atualizar
-        // Se o id existir, salva a atualização
-        return temaRepository.findById(tema.getId())
-
-            // Se encontrar, salva o tema atualizado e retorna a resposta
-            .map(resposta -> ResponseEntity.status(HttpStatus.CREATED)
-            .body(temaRepository.save(tema)))
-
-            // Se não encontrar, retorna 404 Not Found
-            .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-    }
-
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-
-        // Busca o tema pelo id antes de excluir
-        Optional<Tema> tema = temaRepository.findById(id);
-
-        // Se não encontrar, lança exceção com status 404 Not Found
-        if (tema.isEmpty())
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-
-        // Se encontrar, exclui o tema do banco
-        temaRepository.deleteById(id);
-    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
