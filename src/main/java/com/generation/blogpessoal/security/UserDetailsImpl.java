@@ -22,19 +22,16 @@ public class UserDetailsImpl implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-
-		return Collections.emptyList();  
+		return Collections.emptyList();
 	}
 
 	@Override
 	public String getPassword() {
-
 		return password;
 	}
 
 	@Override
 	public String getUsername() {
-
 		return username;
 	}
 
@@ -57,5 +54,4 @@ public class UserDetailsImpl implements UserDetails {
 	public boolean isEnabled() {
 		return true;
 	}
-
 }

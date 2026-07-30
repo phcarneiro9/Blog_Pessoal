@@ -13,7 +13,7 @@ import com.generation.blogpessoal.repository.UsuarioRepository;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
-	
+
 	@Autowired
 	private UsuarioRepository usuarioRepository;
 
@@ -21,16 +21,20 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
 		if (username == null || username.trim().isEmpty()) {
-			throw new UsernameNotFoundException("Usuário (e-mail) não pode ser vazio");
+			throw new UsernameNotFoundException(
+				"Usuário (e-mail) não pode ser vazio"
+			);
 		}
-		
-		Optional<Usuario> usuario = usuarioRepository.findByUsuario(username);
+
+		Optional<Usuario> usuario =
+			usuarioRepository.findByUsuario(username);
 
 		if (usuario.isPresent()) {
 			return new UserDetailsImpl(usuario.get());
-		}else {
-			throw new UsernameNotFoundException("Usuário não encontrado: " + username);
 		}
-			
+
+		throw new UsernameNotFoundException(
+			"Usuário não encontrado: " + username
+		);
 	}
 }
